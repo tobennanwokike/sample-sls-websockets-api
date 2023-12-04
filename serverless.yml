@@ -1,0 +1,45 @@
+service: sample-websockets-project
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  websocketsApiName: sample-websockets-project
+  websocketsApiRouteSelectionExpression: $request.body.action
+  websocketsDescription: Sample Websockets Project
+  environment:
+    APIG_ENDPOINT:
+      Fn::Join:
+        - ''
+        - - https://
+          - Ref: WebsocketsApi
+          - .execute-api.
+          - Ref: AWS::Region
+          - .amazonaws.com/
+          - ${self:custom.stage}
+    REGION: !Ref AWS::Region
+
+custom:
+  stage: ${opt:stage, 'dev'}
+
+functions:
+  connect:
+    handler: src/connect.handler
+    events:
+      - websocket:
+          route: $connect
+  disconnect:
+    handler: src/disconnect.handler
+    events:
+      - websocket:
+          route: $disconnect
+  default:
+    handler: src/default.handler
+    events:
+      - websocket:
+          route: $default
+  custom:
+    handler: src/custom.handler
+    events:
+      - websocket:
+          route: custom
